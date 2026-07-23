@@ -26,6 +26,14 @@ namespace UnityEditor.Search
         public SearchContext context => viewState.context;
         public SearchSelection selection => new SearchSelection(m_Selection, m_Results);
 
+#if UNITY_6000_5_OR_NEWER
+        string ISearchView.currentResultViewId
+        {
+            get => viewState.resultViewDescriptorList.CurrentViewId;
+            set => viewState.SetResultView(value);
+        }
+#endif
+
         DisplayMode ISearchView.displayMode => GetDisplayMode();
         float ISearchView.itemIconSize { get => itemSize; set => itemSize = value; }
         Action<SearchItem, bool> ISearchView.selectCallback => null;

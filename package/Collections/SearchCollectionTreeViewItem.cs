@@ -5,6 +5,10 @@ using System.Linq;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
+#if UNITY_6000_5_OR_NEWER
+using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
+#endif
+
 namespace UnityEditor.Search.Collections
 { 
     class SearchCollectionTreeViewItem : SearchTreeViewItem

@@ -284,7 +284,11 @@ namespace UnityEditor.Search
         internal static IEnumerable<string> EnumerateIdFromObjects(IEnumerable<UnityEngine.Object> objects)
         {
             foreach (var obj in objects)
+#if UNITY_6000_5_OR_NEWER
+                yield return GlobalObjectId.GetGlobalObjectIdSlow(obj.GetEntityId()).ToString();
+#else
                 yield return GlobalObjectId.GetGlobalObjectIdSlow(obj.GetInstanceID()).ToString();
+#endif
         }
 
         internal static IEnumerable<string> EnumeratePaths(IEnumerable<string> globalIds)
@@ -304,14 +308,23 @@ namespace UnityEditor.Search
 
                 var info = new IdInfo();
                 info.globalId = gid.ToString();
+#if UNITY_6000_5_OR_NEWER
+                info.instanceID = GlobalObjectId.GlobalObjectIdentifierToEntityIdSlow(gid);
+                info.path = AssetDatabase.GetAssetPath(info.instanceID);
+#else
                 info.instanceID = GlobalObjectId.GlobalObjectIdentifierToInstanceIDSlow(gid);
                 info.path = AssetDatabase.GetAssetPath(info.instanceID);
+#endif
                 if (!string.IsNullOrEmpty(info.path))
                 {
                     info.isAssetId = true;
                     yield return info;
                 }
+#if UNITY_6000_5_OR_NEWER
+                else if (EditorUtility.EntityIdToObject(info.instanceID) is UnityEngine.Object obj)
+#else
                 else if (EditorUtility.InstanceIDToObject(info.instanceID) is UnityEngine.Object obj)
+#endif
                 {
                     info.path = SearchUtils.GetObjectPath(obj).Substring(1);
                     yield return info;

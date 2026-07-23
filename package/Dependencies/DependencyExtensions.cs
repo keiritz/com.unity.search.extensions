@@ -47,6 +47,16 @@ namespace UnityEditor.Search
                 }
 
                 var id = e.value.ToString();
+#if UNITY_6000_5_OR_NEWER
+                if (ulong.TryParse(id, out var entityId))
+                {
+                    foreach (var item in TaskEvaluatorManager.EvaluateMainThread(() =>
+                        GetSceneObjectDependencies(c.search, sceneProvider, depProvider, EntityId.FromULong(entityId)).ToList()))
+                    {
+                        yield return item;
+                    }
+                }
+#else
                 if (DependencyUtils.TryParse(id, out int instanceId))
                 {
                     foreach (var item in TaskEvaluatorManager.EvaluateMainThread(() =>
@@ -55,16 +65,29 @@ namespace UnityEditor.Search
                         yield return item;
                     }
                 }
+#endif
             }
         }
 
+#if UNITY_6000_5_OR_NEWER
+        static IEnumerable<SearchItem> GetSceneObjectDependencies(SearchContext context, SearchProvider sceneProvider, SearchProvider depProvider, EntityId instanceId)
+#else
         static IEnumerable<SearchItem> GetSceneObjectDependencies(SearchContext context, SearchProvider sceneProvider, SearchProvider depProvider, int instanceId)
+#endif
         {
+#if UNITY_6000_5_OR_NEWER
+            var obj = EditorUtility.EntityIdToObject(instanceId);
+#else
             var obj = EditorUtility.InstanceIDToObject(instanceId);
+#endif
             if (!obj)
                 yield break;
 
+#if UNITY_6000_5_OR_NEWER
+            var go = EditorUtility.EntityIdToObject(instanceId) as GameObject;
+#else
             var go = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
+#endif
             if (!go && obj is Component goc)
             {
                 foreach (var ce in GetComponentDependencies(context, sceneProvider, depProvider, goc))
@@ -148,8 +171,13 @@ namespace UnityEditor.Search
                 #if USE_SEARCH_EXTENSION_API
                 if (!string.IsNullOrEmpty(assetPath))
                     yielder(SearchExpression.CreateItem(assetPath));
+#if UNITY_6000_5_OR_NEWER
+                else
+                    yielder(SearchExpression.CreateItem(obj.GetEntityId().GetRawData()));
+#else
                 else
                     yielder(SearchExpression.CreateItem(obj.GetInstanceID()));
+#endif
                 #else
                 if (!string.IsNullOrEmpty(assetPath))
                     yielder(EvaluatorUtils.CreateItem(assetPath));

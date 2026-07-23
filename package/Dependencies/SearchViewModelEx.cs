@@ -71,6 +71,14 @@ namespace UnityEditor.Search
         }
         public float itemIconSize { get; set; }
 
+#if UNITY_6000_5_OR_NEWER
+        string ISearchView.currentResultViewId
+        {
+            get => m_ViewState.resultViewDescriptorList.CurrentViewId;
+            set => m_ViewState.SetResultView(value);
+        }
+#endif
+
         public DisplayMode displayMode { get; set; }
 
         public bool multiselect { get; set; }
